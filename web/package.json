@@ -10,7 +10,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "~5.18.2"
+    "astro": "~5.18.2",
+    "remark-breaks": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.20.5"

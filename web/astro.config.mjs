@@ -1,6 +1,7 @@
 // @ts-check
 import process from 'node:process';
 import { defineConfig } from 'astro/config';
+import remarkBreaks from 'remark-breaks';
 
 // GitHub Pages 用の設定。GitHub Actions から SITE / BASE_PATH が渡される。
 // - ユーザーサイト (https://<user>.github.io)        → BASE_PATH は空
@@ -10,6 +11,8 @@ export default defineConfig({
   base: process.env.BASE_PATH || '/',
   trailingSlash: 'ignore',
   markdown: {
+    // 単一の改行をそのまま <br> にする（行末スペース不要）
+    remarkPlugins: [remarkBreaks],
     shikiConfig: {
       theme: 'github-light',
       wrap: false,
