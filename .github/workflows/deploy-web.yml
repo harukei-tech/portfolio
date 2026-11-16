@@ -1,0 +1,59 @@
+# Astro サイトをビルドして GitHub Pages にデプロイする
+name: Deploy Web (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/deploy-web.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - run: npm ci
+
+      - run: npm run build
+        env:
+          # 例: https://<user>.github.io と /<repo>（ユーザーサイトなら空）
+          SITE: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # リポジトリの Settings > Secrets and variables > Actions > Variables で設定
+          PUBLIC_API_URL: ${{ vars.PUBLIC_API_URL }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

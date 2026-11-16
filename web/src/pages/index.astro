@@ -1,0 +1,98 @@
+---
+import Base from '../layouts/Base.astro';
+import EntryCard from '../components/EntryCard.astro';
+import { profile } from '../data/profile';
+import { getGroupEntries, groupOrder, groups } from '../lib/sections';
+import { url } from '../lib/utils';
+
+// 各欄の新しいものから 4 件ずつ。記事が 1 件もない欄は表示しない
+const blocks = (
+  await Promise.all(
+    groupOrder.map(async (key) => ({
+      ...groups[key],
+      entries: (await getGroupEntries(key)).slice(0, 4),
+    })),
+  )
+).filter((block) => block.entries.length > 0);
+---
+
+<Base>
+  <section class="hero">
+    <div class="container">
+      <p class="role">{profile.role}</p>
+      <h1>{profile.name}</h1>
+      <p class="tagline">{profile.tagline}</p>
+      <!-- <div class="actions">
+        <a class="btn primary" href={url('/bots')}>作った bot を見る</a>
+      </div> -->
+    </div>
+  </section>
+
+  {
+    blocks.map((block) => (
+      <section class="section">
+        <div class="container">
+          <h2 class="section-title">
+            {block.title} <a href={url(block.path)}>すべて見る →</a>
+          </h2>
+          <p class="muted intro">{block.intro}</p>
+          <div class="grid">{block.entries.map((entry) => <EntryCard entry={entry} />)}</div>
+        </div>
+      </section>
+    ))
+  }
+</Base>
+
+<style>
+  .hero {
+    padding: 72px 0 40px;
+  }
+
+  .role {
+    margin: 0;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  h1 {
+    margin: 4px 0 12px;
+    font-size: clamp(2rem, 7vw, 3rem);
+  }
+
+  .tagline {
+    max-width: 36em;
+    margin: 0;
+    white-space: pre-line; /* profile.tagline の \n を改行として表示する */
+    font-size: 1.05rem;
+    color: var(--muted);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .btn {
+    padding: 10px 22px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+
+  .intro {
+    margin: -8px 0 20px;
+    font-size: 0.9rem;
+  }
+</style>

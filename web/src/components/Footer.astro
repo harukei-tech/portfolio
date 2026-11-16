@@ -1,0 +1,23 @@
+---
+import { profile } from '../data/profile';
+---
+
+<footer class="footer">
+  <div class="container">
+    <p>&copy; {new Date().getFullYear()} {profile.name}</p>
+    <p class="muted">Built with Astro (GitHub Pages)</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: 64px;
+    padding: 24px 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+
+  p {
+    margin: 0;
+  }
+</style>

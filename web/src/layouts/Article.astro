@@ -1,0 +1,257 @@
+---
+import { getImage, Image } from 'astro:assets';
+import Base from './Base.astro';
+import AwardBadge from '../components/AwardBadge.astro';
+import Rating from '../components/Rating.astro';
+import RepoStats from '../components/RepoStats.astro';
+import { formatRank } from '../lib/award';
+import { groupOf, sections, type AnyEntry } from '../lib/sections';
+import { resolveThumbnail } from '../lib/thumbnail';
+import { entryDate, formatDate, url } from '../lib/utils';
+
+interface Props {
+  entry: AnyEntry;
+}
+
+const { entry } = Astro.props;
+const { data } = entry;
+const section = sections[entry.collection];
+const group = groupOf(entry);
+const rank = entry.collection === 'competitive' && entry.data.rank ? formatRank(entry.data.rank) : undefined;
+
+// SNS シェア用の画像（1200px 幅に縮小した版）
+const thumbnail = resolveThumbnail(entry);
+const ogImage = thumbnail ? (await getImage({ src: thumbnail, width: 1200, format: 'png' })).src : undefined;
+---
+
+<Base title={data.title} description={data.description} image={ogImage}>
+  <article class="container article">
+    <a href={url(group.path)} class="back">← {group.title} 一覧</a>
+    <header>
+      {
+        thumbnail && (
+          <Image
+            class="hero"
+            src={thumbnail}
+            alt={data.thumbnailAlt ?? data.title}
+            widths={[800, 1600]}
+            sizes="(max-width: 840px) 100vw, 800px"
+            loading="eager"
+          />
+        )
+      }
+      <h1>{data.title}</h1>
+      <p class="lead muted">{data.description}</p>
+      <p class="dates muted">
+        <time datetime={data.pubDate.toISOString()}>{section.dateLabel} {entryDate(data)}</time>
+        {data.updatedDate && <time datetime={data.updatedDate.toISOString()}>（{formatDate(data.updatedDate)} 更新）</time>}
+      </p>
+
+      <dl class="facts">
+        {
+          entry.collection === 'bots' && (
+            <>
+              {entry.data.game && <div><dt>ゲーム</dt><dd>{entry.data.game}</dd></div>}
+              <div><dt>プラットフォーム</dt><dd>{entry.data.platform}</dd></div>
+              <div><dt>ステータス</dt><dd>{entry.data.status}</dd></div>
+              <div>
+                <dt>技術</dt>
+                <dd><ul class="tags">{entry.data.tech.map((t) => <li class="tag">{t}</li>)}</ul></dd>
+              </div>
+            </>
+          )
+        }
+        {
+          entry.collection === 'competitive' && (
+            <>
+              {(entry.data.platform || entry.data.url) && (
+                <div>
+                  <dt>コンテスト</dt>
+                  <dd>
+                    {entry.data.url ? (
+                      <a href={entry.data.url} target="_blank" rel="noopener">
+                        {entry.data.platform ?? 'コンテストページ'} ↗
+                      </a>
+                    ) : (
+                      entry.data.platform
+                    )}
+                  </dd>
+                </div>
+              )}
+              {rank && (
+                <div>
+                  <dt>最終順位</dt>
+                  <dd>
+                    <strong>{rank.text}</strong>
+                    {rank.top && <span class="top">（{rank.top}）</span>}
+                  </dd>
+                </div>
+              )}
+              {entry.data.award && (
+                <div>
+                  <dt>ランク帯</dt>
+                  <dd><AwardBadge value={entry.data.award} /></dd>
+                </div>
+              )}
+              {entry.data.tech.length > 0 && (
+                <div>
+                  <dt>使用言語・技術</dt>
+                  <dd><ul class="tags">{entry.data.tech.map((t) => <li class="tag">{t}</li>)}</ul></dd>
+                </div>
+              )}
+            </>
+          )
+        }
+        {
+          entry.collection === 'poc' && (
+            <>
+              <div><dt>種別</dt><dd>技術検証（PoC）</dd></div>
+              {entry.data.tech.length > 0 && (
+                <div>
+                  <dt>技術</dt>
+                  <dd><ul class="tags">{entry.data.tech.map((t) => <li class="tag">{t}</li>)}</ul></dd>
+                </div>
+              )}
+            </>
+          )
+        }
+        {
+          entry.collection === 'reviews' && (
+            <>
+              <div><dt>OSS</dt><dd>{entry.data.oss}{entry.data.version && ` (v${entry.data.version})`}</dd></div>
+              <div><dt>評価</dt><dd><Rating value={entry.data.rating} /></dd></div>
+              <div>
+                <dt>タグ</dt>
+                <dd><ul class="tags">{entry.data.tags.map((t) => <li class="tag">{t}</li>)}</ul></dd>
+              </div>
+            </>
+          )
+        }
+        {
+          data.repo && (
+            <div>
+              <dt>リポジトリ</dt>
+              <dd><RepoStats repo={data.repo} /></dd>
+            </div>
+          )
+        }
+      </dl>
+
+      {
+        entry.collection === 'reviews' && (entry.data.pros.length > 0 || entry.data.cons.length > 0) && (
+          <div class="verdict">
+            <section>
+              <h2>👍 良かった点</h2>
+              <ul>{entry.data.pros.map((p) => <li>{p}</li>)}</ul>
+            </section>
+            <section>
+              <h2>🤔 気になった点</h2>
+              <ul>{entry.data.cons.map((c) => <li>{c}</li>)}</ul>
+            </section>
+          </div>
+        )
+      }
+    </header>
+
+    <div class="prose">
+      <slot />
+    </div>
+  </article>
+</Base>
+
+<style>
+  .article {
+    max-width: 800px;
+    padding-top: 32px;
+  }
+
+  .hero {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    margin-top: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .back {
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+
+  h1 {
+    margin: 16px 0 8px;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+  }
+
+  .lead {
+    margin: 0;
+  }
+
+  .dates {
+    font-size: 0.85rem;
+  }
+
+  .facts {
+    display: grid;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+  }
+
+  .facts > div {
+    display: grid;
+    grid-template-columns: 8em 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+
+  dt {
+    color: var(--muted);
+  }
+
+  .top {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+    min-width: 0;
+  }
+
+  @media (max-width: 480px) {
+    .facts > div {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+  }
+
+  .verdict {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .verdict section {
+    padding: 4px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .verdict h2 {
+    font-size: 1rem;
+  }
+
+  .verdict ul {
+    padding-left: 1.2em;
+    font-size: 0.9rem;
+  }
+</style>

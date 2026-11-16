@@ -1,0 +1,194 @@
+---
+import AwardBadge from './AwardBadge.astro';
+import Rating from './Rating.astro';
+// import RepoStats from './RepoStats.astro'; // API 停止中のためコメントアウト
+import Thumbnail from './Thumbnail.astro';
+import { formatRank } from '../lib/award';
+import { sections, type AnyEntry } from '../lib/sections';
+import { entryDate, url } from '../lib/utils';
+
+interface Props {
+  entry: AnyEntry;
+}
+
+const { entry } = Astro.props;
+const href = url(`${sections[entry.collection].path}/${entry.id}`);
+const tags = entry.collection === 'reviews' ? entry.data.tags : entry.data.tech;
+const rank = entry.collection === 'competitive' && entry.data.rank ? formatRank(entry.data.rank) : undefined;
+---
+
+<article class="card">
+  <Thumbnail entry={entry} />
+  <div class="body">
+    <div class="meta">
+      {
+        entry.collection === 'bots' && (
+          <>
+            <span>{entry.data.platform}</span>
+            {entry.data.game && <span>· {entry.data.game}</span>}
+            <span class:list={['status', { stopped: entry.data.status === '停止中' }]}>{entry.data.status}</span>
+          </>
+        )
+      }
+      {
+        entry.collection === 'competitive' && (
+          <>
+            {entry.data.platform && <span>{entry.data.platform}</span>}
+            {entry.data.award && (
+              <span class="push">
+                <AwardBadge value={entry.data.award} />
+              </span>
+            )}
+          </>
+        )
+      }
+      {
+        entry.collection === 'poc' && (
+          <>
+            <span class="kind">PoC</span>
+            <span>{entry.data.tech[0]}</span>
+          </>
+        )
+      }
+      {
+        entry.collection === 'reviews' && (
+          <>
+            <span class="kind">Review</span>
+            <span>{entry.data.oss}</span>
+            <Rating value={entry.data.rating} />
+          </>
+        )
+      }
+    </div>
+    <h3><a href={href}>{entry.data.title}</a></h3>
+    {
+      rank && (
+        <p class="rank">
+          <span class="rank-text">{rank.text}</span>
+          {rank.top && <span class="rank-top">{rank.top}</span>}
+        </p>
+      )
+    }
+    <p class="desc">{entry.data.description}</p>
+    <ul class="tags">
+      {tags.map((t) => <li class="tag">{t}</li>)}
+    </ul>
+    <div class="footer">
+      <time datetime={entry.data.pubDate.toISOString()} class="muted">{entryDate(entry.data)}</time>
+      {/* スター数などの取得は API 停止中のためコメントアウト（compact 表示はリンクを出さないため丸ごと無効化）
+      {entry.data.repo && <RepoStats repo={entry.data.repo} compact />}
+      */}
+    </div>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 14px rgb(51 48 43 / 8%);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 10px;
+    padding: 16px 20px 20px;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-height: 1.4em;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  /* 同じ欄に複数の種類が並ぶときの見分け用ラベル */
+  .kind {
+    padding: 1px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .status,
+  .push {
+    margin-left: auto;
+  }
+
+  .status {
+    font-size: 0.75rem;
+    color: var(--accent);
+  }
+
+  .status.stopped {
+    color: var(--muted);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  h3 a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  /* カード全体をクリック可能にする */
+  h3 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .rank {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    margin: 0;
+  }
+
+  .rank-text {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .rank-top {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .desc {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+    flex-grow: 1;
+  }
+
+  .footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.8rem;
+  }
+</style>

@@ -1,0 +1,193 @@
+---
+import { profile } from '../data/profile';
+import { groupOrder, groups, sections } from '../lib/sections';
+import { url } from '../lib/utils';
+
+// 欄の一覧ページに加え、欄に属する記事のページ（例: /poc/...）にいるときも現在地として強調する
+const works = groupOrder.map((key) => ({
+  href: groups[key].path,
+  label: groups[key].title,
+  match: [groups[key].path, ...groups[key].collections.map((c) => sections[c].path)],
+}));
+const about = { href: '/about', label: 'About', match: ['/about'] };
+
+const current = Astro.url.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '');
+const isCurrent = (paths: string[]) => paths.some((p) => current === p || current.startsWith(`${p}/`));
+const inWorks = works.some((w) => isCurrent(w.match));
+---
+
+<header class="header">
+  <div class="container inner">
+    <a class="logo" href={url('/')}>{profile.name}</a>
+    <nav aria-label="メイン">
+      <ul class="menu">
+        <li class="works">
+          <button
+            type="button"
+            class:list={['toggle', { active: inWorks }]}
+            aria-expanded="false"
+            aria-controls="works-menu"
+          >
+            Works
+          </button>
+          {/* 絶対配置なので、開いてもヘッダー内の Works の位置・幅は変わらない */}
+          <ul class="dropdown" id="works-menu" hidden>
+            {
+              works.map((item) => (
+                <li>
+                  <a href={url(item.href)} aria-current={isCurrent(item.match) ? 'page' : undefined}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </li>
+        <li>
+          <a href={url(about.href)} aria-current={isCurrent(about.match) ? 'page' : undefined}>{about.label}</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    min-height: 60px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .logo {
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .menu {
+    display: flex;
+    align-items: center;
+    gap: 4px 20px;
+  }
+
+  nav a,
+  .toggle {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  nav a:hover,
+  nav a[aria-current='page'],
+  .toggle:hover,
+  .toggle.active,
+  .toggle[aria-expanded='true'] {
+    color: var(--accent);
+  }
+
+  /* クリックで開閉するメニュー */
+  .works {
+    position: relative;
+  }
+
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    font-family: inherit;
+    line-height: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .toggle::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.15s;
+  }
+
+  .toggle[aria-expanded='true']::after {
+    margin-top: 3px;
+    transform: rotate(-135deg);
+  }
+
+  .dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    display: grid;
+    min-width: 220px;
+    padding: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  }
+
+  .dropdown[hidden] {
+    display: none;
+  }
+
+  .dropdown a {
+    display: block;
+    padding: 8px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .dropdown a:hover {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+</style>
+
+<script>
+  // Works ボタンでメニューを開閉する。メニューの外側をクリック、または Esc キーで閉じる
+  const works = document.querySelector<HTMLElement>('.header .works');
+  const toggle = works?.querySelector<HTMLButtonElement>('.toggle');
+  const menu = works?.querySelector<HTMLUListElement>('.dropdown');
+
+  if (works && toggle && menu) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      menu.hidden = !open;
+    };
+
+    toggle.addEventListener('click', () => setOpen(menu.hidden));
+    document.addEventListener('click', (e) => {
+      if (!menu.hidden && !works.contains(e.target as Node)) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.hidden) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>

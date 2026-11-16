@@ -1,0 +1,103 @@
+# Laravel を AWS Lambda (Bref) にデプロイする設定
+# デプロイ: npx osls deploy --stage prod
+service: portfolio-api
+
+provider:
+    name: aws
+    region: ap-northeast-1
+    stage: ${opt:stage, 'dev'}
+    environment:
+        APP_NAME: Portfolio API
+        APP_ENV: ${param:appEnv}
+        APP_DEBUG: ${param:debug}
+        # 事前に SSM パラメータストアへ登録しておく（README 参照）
+        APP_KEY: ${ssm:/portfolio-api/${sls:stage}/app-key}
+        APP_LOCALE: ja
+        LOG_CHANNEL: stderr
+        LOG_STDERR_FORMATTER: Bref\Monolog\CloudWatchFormatter
+        SESSION_DRIVER: array
+        # Lambda インスタンス間で共有するキャッシュ（GitHub 統計・レート制限）
+        CACHE_STORE: dynamodb
+        DYNAMODB_CACHE_TABLE: !Ref CacheTable
+        MAINTENANCE_MODE: ${param:maintenance, null}
+        CORS_ALLOWED_ORIGINS: ${param:corsOrigins}
+        # お問い合わせメール（SES）
+        MAIL_MAILER: ses
+        MAIL_FROM_ADDRESS: ${ssm:/portfolio-api/${sls:stage}/mail-from}
+        CONTACT_TO_ADDRESS: ${ssm:/portfolio-api/${sls:stage}/contact-to}
+        GITHUB_TOKEN: ${ssm:/portfolio-api/${sls:stage}/github-token, ''}
+        GITHUB_ALLOWED_OWNERS: ${param:githubOwners}
+    iam:
+        role:
+            statements:
+                -   Effect: Allow
+                    Action:
+                        - dynamodb:GetItem
+                        - dynamodb:BatchGetItem
+                        - dynamodb:PutItem
+                        - dynamodb:UpdateItem
+                        - dynamodb:DeleteItem
+                    Resource: !GetAtt CacheTable.Arn
+                -   Effect: Allow
+                    Action:
+                        - ses:SendEmail
+                        - ses:SendRawEmail
+                    Resource: '*'
+
+functions:
+    web:
+        handler: public/index.php
+        runtime: php-84-fpm
+        timeout: 28
+        memorySize: 1024
+        events:
+            - httpApi: '*'
+
+    artisan:
+        handler: artisan
+        runtime: php-84-console
+        timeout: 120
+
+resources:
+    Resources:
+        CacheTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                BillingMode: PAY_PER_REQUEST
+                AttributeDefinitions:
+                    -   AttributeName: key
+                        AttributeType: S
+                KeySchema:
+                    -   AttributeName: key
+                        KeyType: HASH
+                TimeToLiveSpecification:
+                    AttributeName: expires_at
+                    Enabled: true
+
+params:
+    default:
+        appEnv: ${sls:stage}
+        debug: 0
+        corsOrigins: http://localhost:4321
+        # 統計取得を許可する GitHub ユーザー名（カンマ区切り）
+        githubOwners: ''
+    prod:
+        appEnv: production
+        # GitHub Pages の URL（https://<ユーザー名>.github.io）に書き換える
+        corsOrigins: https://YOUR_GITHUB_USERNAME.github.io
+    dev:
+        debug: 1
+
+package:
+    patterns:
+        - '!.env'
+        - '!.env.*'
+        - '!node_modules/**'
+        - '!public/storage'
+        - '!storage/**'
+        - '!tests/**'
+        - '!database/*.sqlite'
+        - '!.github/**'
+
+plugins:
+    - ./vendor/bref/bref

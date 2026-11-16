@@ -1,0 +1,24 @@
+---
+import { awardStyle } from '../lib/award';
+
+interface Props {
+  value: string;
+}
+
+const style = awardStyle(Astro.props.value);
+---
+
+<span class="award" style={`--aw-bg: ${style.bg}; --aw-fg: ${style.fg};`}>{style.label}</span>
+
+<style>
+  .award {
+    display: inline-block;
+    padding: 1px 10px;
+    border-radius: 999px;
+    background: var(--aw-bg);
+    color: var(--aw-fg);
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+</style>

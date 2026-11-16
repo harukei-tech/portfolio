@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "deploy": "osls deploy --stage prod",
+    "logs": "osls logs --stage prod -f web --tail"
+  },
+  "devDependencies": {
+    "osls": "^4.6.0"
+  }
+}

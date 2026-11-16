@@ -1,0 +1,26 @@
+---
+interface Props {
+  value: number;
+}
+
+const { value } = Astro.props;
+---
+
+<span class="rating" role="img" aria-label={`5 段階中 ${value}`}>
+  <span class="on">{'★'.repeat(value)}</span><span class="off">{'★'.repeat(5 - value)}</span>
+</span>
+
+<style>
+  .rating {
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+
+  .on {
+    color: var(--warn);
+  }
+
+  .off {
+    color: var(--border);
+  }
+</style>
