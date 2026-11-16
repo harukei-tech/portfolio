@@ -26,7 +26,10 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
+    {/* 元画像: src/assets/avatar.png（差し替えたら public/ のアイコンも作り直す） */}
+    <link rel="icon" type="image/png" sizes="32x32" href={url('/favicon-32.png')} />
+    <link rel="icon" type="image/png" sizes="192x192" href={url('/favicon-192.png')} />
+    <link rel="apple-touch-icon" href={url('/apple-touch-icon.png')} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />

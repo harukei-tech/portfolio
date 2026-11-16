@@ -1,5 +1,7 @@
 ---
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import avatar from '../assets/avatar.png';
 import EntryCard from '../components/EntryCard.astro';
 import { profile } from '../data/profile';
 import { getGroupEntries, groupOrder, groups } from '../lib/sections';
@@ -20,7 +22,10 @@ const blocks = (
   <section class="hero">
     <div class="container">
       <p class="role">{profile.role}</p>
-      <h1>{profile.name}</h1>
+      <h1>
+        <Image src={avatar} alt="" class="avatar" width={112} height={112} loading="eager" />
+        {profile.name}
+      </h1>
       <p class="tagline">{profile.tagline}</p>
       <!-- <div class="actions">
         <a class="btn primary" href={url('/bots')}>作った bot を見る</a>
@@ -56,8 +61,19 @@ const blocks = (
   }
 
   h1 {
+    display: flex;
+    align-items: center;
+    gap: 14px;
     margin: 4px 0 12px;
     font-size: clamp(2rem, 7vw, 3rem);
+  }
+
+  /* 高精細の画面でもぼやけないよう、表示サイズ（最大 56px）の 2 倍の画像を出力している */
+  .avatar {
+    flex: none;
+    width: 1.15em;
+    max-width: 56px;
+    height: auto;
   }
 
   .tagline {
