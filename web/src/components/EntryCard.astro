@@ -54,8 +54,8 @@ const rank = entry.collection === 'competitive' && entry.data.rank ? formatRank(
         entry.collection === 'reviews' && (
           <>
             <span class="kind">Review</span>
-            <span>{entry.data.oss}</span>
-            <Rating value={entry.data.rating} />
+            {entry.data.oss && <span>{entry.data.oss}</span>}
+            {entry.data.rating !== undefined && <Rating value={entry.data.rating} />}
           </>
         )
       }

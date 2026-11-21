@@ -39,7 +39,7 @@ const label =
   entry.collection === 'bots'
     ? entry.data.platform
     : entry.collection === 'reviews'
-      ? entry.data.oss
+      ? (entry.data.oss ?? entry.data.title)
       : entry.collection === 'poc'
         ? entry.data.title
         : (entry.data.platform ?? entry.data.title);

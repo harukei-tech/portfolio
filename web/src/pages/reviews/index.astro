@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import EntryCard from '../../components/EntryCard.astro';
 import { getGroupEntries, groups } from '../../lib/sections';
+import { url } from '../../lib/utils';
 
 const group = groups.reviews;
 const entries = await getGroupEntries('reviews');
@@ -9,6 +10,7 @@ const entries = await getGroupEntries('reviews');
 
 <Base title={group.title} description={group.intro}>
   <section class="section container">
+    <a href={url('/')} class="back">← トップ</a>
     <h1>{group.title}</h1>
     <p class="muted">{group.intro}</p>
     <div class="grid">{entries.map((entry) => <EntryCard entry={entry} />)}</div>

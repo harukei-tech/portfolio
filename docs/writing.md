@@ -8,8 +8,8 @@
 | --- | --- |
 | bot 紹介 | `web/src/content/bots/<slug>.md` |
 | 競技プログラミング | `web/src/content/competitive_programming/<slug>.md` |
-| OSS レビュー | `web/src/content/reviews/<slug>.md` |
-| 技術検証（PoC） | `web/src/content/PoC/<slug>.md`（画面上は OSS レビューと同じ「Reviews & PoC」欄に表示） |
+| レビュー | `web/src/content/reviews/<slug>.md` |
+| 技術検証（PoC） | `web/src/content/PoC/<slug>.md`（画面上はレビューと同じ「Reviews & PoC」欄に表示） |
 
 どの欄に表示するかは [web/src/lib/sections.ts](../web/src/lib/sections.ts) の `groups` で決めています。PoC とレビューを統合するときや、別の欄に分けるときは、ここを書き換えます。
 
@@ -48,6 +48,6 @@ thumbnailAlt: bot との DM 画面   # 任意。画像の説明（省略時は�
 - 横長（16:9、1600×900 px 程度）の画像を推奨します。比率が違う場合は、中央を基準に切り抜いて表示します。
 - 画像は、ビルド時に自動で縮小・WebP 変換されます。
 - 指定すると、一覧のカード、記事の冒頭、SNS でシェアしたときの画像（OGP）に使われます。
-- 指定しない場合は、プラットフォーム名（OSS レビューなら OSS 名）から色分けした代わりの画像を表示します。
+- 指定しない場合は、プラットフォーム名（レビューなら対象名 `oss`、未指定ならタイトル）から色分けした代わりの画像を表示します。
 
 名前・経歴・スキルは [web/src/data/profile.ts](../web/src/data/profile.ts) で編集します。

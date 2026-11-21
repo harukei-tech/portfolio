@@ -173,3 +173,9 @@ h3 {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* 一覧・記事ページ左上の「上の階層へ戻る」リンク */
+.back {
+  font-size: 0.85rem;
+  text-decoration: none;
+}

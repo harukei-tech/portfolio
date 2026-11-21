@@ -105,7 +105,7 @@ const competitive = defineCollection({
       .transform(normalizePubDate),
 });
 
-/** 試用した OSS のレビュー */
+/** レビュー記事（OSS に限らない） */
 const reviews = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/reviews' }),
   schema: (ctx) =>
@@ -114,13 +114,13 @@ const reviews = defineCollection({
       description: z.string(),
       pubDate: z.coerce.date(),
       updatedDate: z.coerce.date().optional(),
-      /** レビュー対象の OSS 名 */
-      oss: z.string(),
+      /** レビュー対象の名前（OSS・製品・サービスなど）。省略可 */
+      oss: z.string().optional(),
       /** 試したバージョン */
       version: z.string().optional(),
       repo,
-      /** 5 段階評価 */
-      rating: z.number().int().min(1).max(5),
+      /** 5 段階評価。省略すると評価は表示しない */
+      rating: z.number().int().min(1).max(5).optional(),
       tags: z.array(z.string()).default([]),
       /** 良かった点 / 気になった点（一覧と記事冒頭に表示） */
       pros: z.array(z.string()).default([]),

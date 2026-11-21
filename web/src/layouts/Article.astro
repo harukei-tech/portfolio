@@ -118,8 +118,12 @@ const ogImage = thumbnail ? (await getImage({ src: thumbnail, width: 1200, forma
         {
           entry.collection === 'reviews' && (
             <>
-              <div><dt>OSS</dt><dd>{entry.data.oss}{entry.data.version && ` (v${entry.data.version})`}</dd></div>
-              <div><dt>評価</dt><dd><Rating value={entry.data.rating} /></dd></div>
+              {entry.data.oss && (
+                <div><dt>対象</dt><dd>{entry.data.oss}{entry.data.version && ` (v${entry.data.version})`}</dd></div>
+              )}
+              {entry.data.rating !== undefined && (
+                <div><dt>評価</dt><dd><Rating value={entry.data.rating} /></dd></div>
+              )}
               <div>
                 <dt>タグ</dt>
                 <dd><ul class="tags">{entry.data.tags.map((t) => <li class="tag">{t}</li>)}</ul></dd>
@@ -174,11 +178,6 @@ const ogImage = thumbnail ? (await getImage({ src: thumbnail, width: 1200, forma
     margin-top: 16px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-  }
-
-  .back {
-    font-size: 0.85rem;
-    text-decoration: none;
   }
 
   h1 {
